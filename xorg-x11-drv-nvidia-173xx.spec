@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.15
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -34,11 +34,11 @@ Requires(post):  nvidia-173xx-kmod >= %{version}
 # Needed in all nvidia or fglrx driver packages
 BuildRequires:      desktop-file-utils
 Requires:           which
-Requires:           livna-config-display
+Requires:           livna-config-display >= 0.0.22
 Requires:           %{name}-libs-%{_target_cpu} = %{version}-%{release}
 
-Requires(post):     livna-config-display
-Requires(preun):    livna-config-display
+Requires(post):     livna-config-display >= 0.0.22
+Requires(preun):    livna-config-display >= 0.0.22
 Requires(post):     chkconfig
 Requires(post):     ldconfig
 Requires(preun):    chkconfig
@@ -53,6 +53,9 @@ Conflicts:     xorg-x11-drv-nvidia
 Conflicts:     xorg-x11-drv-fglrx
 Obsoletes:     nvidia-173xx-kmod < %{version}
 
+Obsoletes:     nvidia-x11-drv-97xx < %{version}-%{release}
+Provides:      nvidia-x11-drv-97xx = %{version}-%{release}
+
 %description
 This package provides the legacy NVIDIA display driver of the 173xx serie
 which allows for hardware accelerated rendering with NVIDIA chipsets
@@ -66,7 +69,7 @@ for driver version %{version}.
 %package devel
 Summary:       Development files for %{name}
 Group:         Development/Libraries
-Requires:      %{name} = %{version}-%{release}
+Requires:      %{name}-libs-%{_target_cpu} = %{version}-%{release}
 
 %description devel
 This package provides the development files of the %{name} package,
@@ -230,28 +233,12 @@ if [ "$1" -eq "0" ]; then
     %{_initrddir}/nvidia-173xx stop &> /dev/null ||:
     /sbin/chkconfig --del nvidia-173xx ||:
 fi ||:
-# Remove all entries of nvidia/NVdriver from modprobe.conf
-# Start using modprobe.d as of FC5
-# This can be removed eventually
-# Make a backup of the backup
-if [ -f %{_sysconfdir}/modprobe.conf.backup-nvidia-glx ]; then
-  mv %{_sysconfdir}/modprobe.conf.backup-nvidia-glx %{_sysconfdir}/modprobe.conf.backup-nvidia  ||:
-fi
-if [ -f %{_sysconfdir}/modprobe.conf.backup-nvidia ]; then
-  mv %{_sysconfdir}/modprobe.conf.backup-nvidia %{_sysconfdir}/modprobe.conf.backup-nvidia-old  ||:
-fi
-if [ -f %{_sysconfdir}/modprobe.conf ]; then
-  mv %{_sysconfdir}/modprobe.conf %{_sysconfdir}/modprobe.conf.backup-nvidia ||:
-  grep -v -E -e "^alias +[^ ]+ +(nvidia|NVdriver)" -e "options nvidia " %{_sysconfdir}/modprobe.conf.backup-nvidia > %{_sysconfdir}/modprobe.conf  ||:
-fi
 
 %postun libs -p /sbin/ldconfig
 
 %files
 %defattr(-,root,root,-)
 %doc nvidiapkg/usr/share/doc/*
-#{_sysconfdir}/modprobe.d/nvidia
-#{_sysconfdir}/udev/makedev.d/60-nvidia.nodes
 %{_initrddir}/nvidia-173xx
 %{_bindir}/*
 %{_sbindir}/*
@@ -268,7 +255,7 @@ fi
 %defattr(-,root,root,-)
 %dir %{nvidialibdir}
 %dir %{nvidialibdir}/tls
-%config %{_sysconfdir}/ld.so.conf.d/nvidia*
+%config %{_sysconfdir}/ld.so.conf.d/nvidia-%{_lib}.conf
 %{nvidialibdir}/*.so.*
 %{nvidialibdir}/tls/*.so.*
 
@@ -284,6 +271,12 @@ fi
 
 
 %changelog
+* Wed Nov 12 2008 kwizart < kwizart at gmail.com > - 173.14.15-2
+- Bump Requirement of l-c-d for new serie
+- Obsoletes/Provides nvidia-x11-drv-97xx
+- Change -devel Requires from main to -libs-%%{_target_cpu}.
+- Clean the spec.
+
 * Wed Nov  5 2008 kwizart < kwizart at gmail.com > - 173.14.15-1
 - Rename to nvidia-173xx
 - Update to 173.14.15
