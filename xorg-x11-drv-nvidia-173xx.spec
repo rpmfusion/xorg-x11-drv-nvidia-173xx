@@ -7,7 +7,7 @@
 %endif
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.17
+Version:       173.14.18
 Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
@@ -271,6 +271,9 @@ fi ||:
 
 
 %changelog
+* Mon Mar 16 2009 kwizart < kwizart at gmail.com > - 173.14.18-1
+- Update to 173.14.18 (stable)
+
 * Wed Feb 25 2009 kwizart < kwizart at gmail.com > - 173.14.17-1
 - Update to 173.14.17 (beta)
 
