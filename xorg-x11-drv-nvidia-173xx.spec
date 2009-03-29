@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.18
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -271,6 +271,9 @@ fi ||:
 
 
 %changelog
+* Sun Mar 29 2009 Thorsten Leemhuis <fedora [AT] leemhuis [DOT] info> - 173.14.18-2
+- rebuild for new F11 features
+
 * Mon Mar 16 2009 kwizart < kwizart at gmail.com > - 173.14.18-1
 - Update to 173.14.18 (stable)
 
