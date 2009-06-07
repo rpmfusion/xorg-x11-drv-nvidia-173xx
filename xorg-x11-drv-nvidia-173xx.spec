@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.18
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -18,6 +18,7 @@ Source0:       ftp://download.nvidia.com/XFree86/Linux-x86/%{version}/NVIDIA-Lin
 Source1:       ftp://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}-pkg0.run
 Source4:       nvidia-settings.desktop
 Source5:       nvidia-173xx-init
+Source6:       blacklist-nouveau.conf
 Source10:      nvidia-173xx-config-display
 Source11:      nvidia-173xx-README.Fedora
 # So we don't pull other nvidia variants
@@ -208,6 +209,10 @@ install -D -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT%{_initrddir}/nvidia-173xx
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/
 echo "%{nvidialibdir}" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/nvidia-%{_lib}.conf
 
+#Blacklist nouveau by F-11
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/
+install -pm 0644 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/
+
 # Change perms on static libs. Can't fathom how to do it nicely above.
 find $RPM_BUILD_ROOT/%{nvidialibdir} -type f -name "*.a" -exec chmod 0644 '{}' \;
 
@@ -275,6 +280,9 @@ fi ||:
 
 
 %changelog
+* Sun Jun  7 2009 kwizart < kwizart at gmail.com > - 173.14.18-4
+- blacklist nouveau by default.
+
 * Fri Apr  3 2009 kwizart < kwizart at gmail.com > - 173.14.18-3
 - Fix x86 Arch for fedora >= 11
 
