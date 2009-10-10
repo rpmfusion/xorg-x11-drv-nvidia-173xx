@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.20
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -22,9 +22,12 @@ Source6:       blacklist-nouveau.conf
 Source10:      nvidia-173xx-config-display
 Source11:      nvidia-173xx-README.Fedora
 # So we don't pull other nvidia variants
-Source91:  filter-requires.sh
-%define    _use_internal_dependency_generator 0
-%define    __find_requires %{SOURCE91}
+Source91:        filter-requires.sh
+# So we don't mess with mesa provides.
+Source92:        filter-provides.sh
+%define          _use_internal_dependency_generator 0
+%define          __find_requires %{SOURCE91}
+%define          __find_provides %{SOURCE92}
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if 0%{?fedora} >= 11
@@ -281,6 +284,9 @@ fi ||:
 
 
 %changelog
+* Sat Oct 10 2009 kwizart < kwizart at gmail.com > - 1173.14.20-2
+- Avoid Requires/Provides of the libGL.so.1 . rfbz#859
+
 * Mon Aug 31 2009 kwizart < kwizart at gmail.com > - 173.14.20-1
 - Update to 173.14.20 (beta)
 
