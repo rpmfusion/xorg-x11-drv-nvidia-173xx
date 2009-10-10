@@ -284,7 +284,7 @@ fi ||:
 
 
 %changelog
-* Sat Oct 10 2009 kwizart < kwizart at gmail.com > - 1173.14.20-2
+* Sat Oct 10 2009 kwizart < kwizart at gmail.com > - 173.14.20-2
 - Avoid Requires/Provides of the libGL.so.1 . rfbz#859
 
 * Mon Aug 31 2009 kwizart < kwizart at gmail.com > - 173.14.20-1
