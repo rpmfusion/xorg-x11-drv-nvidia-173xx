@@ -283,7 +283,6 @@ fi ||:
 %{_datadir}/pixmaps/*.png
 %exclude %{_mandir}/man1/nvidia-settings.*
 %exclude %{_mandir}/man1/nvidia-xconfig.*
-%{_mandir}/man1/nvidia-smi.*
 
 %files libs
 %defattr(-,root,root,-)
