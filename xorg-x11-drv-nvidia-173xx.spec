@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.22
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -16,7 +16,6 @@ License:       Redistributable, no modification permitted
 URL:           http://www.nvidia.com/
 Source0:       ftp://download.nvidia.com/XFree86/Linux-x86/%{version}/NVIDIA-Linux-x86-%{version}-pkg0.run
 Source1:       ftp://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}-pkg0.run
-Source4:       nvidia-settings.desktop
 Source5:       nvidia-173xx-init
 Source6:       blacklist-nouveau.conf
 Source10:      nvidia-173xx-config-display
@@ -44,7 +43,6 @@ Requires:        nvidia-173xx-kmod >= %{version}
 Requires(post):  nvidia-173xx-kmod >= %{version}
 
 # Needed in all nvidia or fglrx driver packages
-BuildRequires:      desktop-file-utils
 BuildRequires:      prelink
 Requires:           which
 Requires:           livna-config-display >= 0.0.22
@@ -205,11 +203,6 @@ ln -s libcuda.so.%{version} $RPM_BUILD_ROOT%{nvidialibdir}/libcuda.so
 # X configuration script
 install -D -p -m 0755 %{SOURCE10} $RPM_BUILD_ROOT%{_sbindir}/nvidia-173xx-config-display
 
-# Desktop entry for nvidia-settings
-desktop-file-install --vendor "" \
-    --dir $RPM_BUILD_ROOT%{_datadir}/applications/ \
-    %{SOURCE4}
-
 # Install initscript
 install -D -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT%{_initrddir}/nvidia-173xx
 
@@ -279,7 +272,6 @@ fi ||:
 %{_libdir}/xorg/modules/drivers/nvidia_drv.so
 %{_libdir}/xorg/modules/extensions/nvidia/*.so*
 #/no_multilib
-%{_datadir}/applications/*nvidia-settings.desktop
 %{_datadir}/pixmaps/*.png
 %exclude %{_mandir}/man1/nvidia-settings.*
 %exclude %{_mandir}/man1/nvidia-xconfig.*
@@ -304,6 +296,9 @@ fi ||:
 
 
 %changelog
+* Fri Nov 27 2009 Nicolas Chauvet <kwizart@fedoraproject.org> - 173.14.22-3
+- Remove duplicate desktop file
+
 * Tue Nov 24 2009 Nicolas Chauvet <kwizart@fedoraproject.org> - 173.14.22-2
 - Use nvidia-xconfig and nvidia-settings built from sources.
 
