@@ -259,6 +259,7 @@ fi ||:
 %{_initrddir}/nvidia-173xx
 %exclude %{_bindir}/nvidia-settings
 %exclude %{_sbindir}/nvidia-xconfig
+%{_bindir}/nvidia-smi
 %{_bindir}/nvidia-bug-report.sh
 %{_sbindir}/nvidia-173xx-config-display
 # Xorg libs that do not need to be multilib
