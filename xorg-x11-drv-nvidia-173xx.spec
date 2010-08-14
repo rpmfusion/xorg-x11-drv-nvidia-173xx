@@ -296,9 +296,7 @@ fi ||:
 %defattr(-,root,root,-)
 %dir %{_includedir}/nvidia
 %dir %{_includedir}/nvidia/GL
-%dir %{_includedir}/nvidia/cuda
 %{_includedir}/nvidia/GL/*.h
-%{_includedir}/nvidia/cuda/*.h
 %{nvidialibdir}/libXvMCNVIDIA.a
 %{nvidialibdir}/*.so
 
@@ -309,6 +307,7 @@ fi ||:
 - Fallback to nouveau instead of nv
 - Add post section to change boot option with grubby
 - Add post section Enabled Selinux allow_execstack boolean.
+- Drop cuda from 173xx serie
 
 * Sat Mar 27 2010 Nicolas Chauvet <kwizart@fedoraproject.org> - 173.14.25-1
 - Update to 173.14.25
