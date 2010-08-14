@@ -7,7 +7,7 @@
 %endif
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.25
+Version:       173.14.27
 Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
@@ -218,7 +218,7 @@ install -pm 0644 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/
 find $RPM_BUILD_ROOT/%{nvidialibdir} -type f -name "*.a" -exec chmod 0644 '{}' \;
 
 # Remove execstack needs on F-12 and laters
-%if 0%{?fedora} >= 12 || 0%{?rhel} > 5
+%if 0
 find $RPM_BUILD_ROOT%{nvidialibdir} -name '*.so.*' -type f -exec execstack -c {} ';'
 execstack -c $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/nvidia/libglx.so.%{version}
 execstack -c $RPM_BUILD_ROOT%{_libdir}/xorg/modules/drivers/nvidia_drv.so
@@ -235,15 +235,23 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %post
-# Removes old legacy layout, fixed SELinux copy errors
-if [ ! $(ls /etc/udev/devices/nvidia* 2>/dev/null | wc -l) -eq 0 ];then rm -f /etc/udev/devices/nvidia*;fi ||:
 if [ "$1" -eq "1" ]; then
   # Enable nvidia driver when installing
   %{_sbindir}/nvidia-173xx-config-display enable &>/dev/null ||:
   # Add init script and start it
   /sbin/chkconfig --add nvidia-173xx ||:
   /etc/init.d/nvidia-173xx start &>/dev/null ||:
+  if [ -x /sbin/grubby ] ; then
+    GRUBBYLASTKERNEL=`/sbin/grubby --default-kernel`
+    /sbin/grubby --update-kernel=${GRUBBYLASTKERNEL} --args='nouveau.modeset=0 rdblacklist=nouveau' &>/dev/null
+  fi
 fi
+if [ -x /usr/sbin/setsebool ] ; then
+  SELINUXEXECSTACK=`cat /selinux/booleans/allow_execstack 2>/dev/null`
+  if [ "${SELINUXEXECSTACK}" == "0 0" ] ; then
+    /usr/sbin/setsebool -P allow_execstack on &>/dev/null
+  fi
+fi ||:
 
 %post libs -p /sbin/ldconfig
 
@@ -296,6 +304,12 @@ fi ||:
 
 
 %changelog
+* Sat Aug 14 2010 Nicolas Chauvet <kwizart@gmail.com> - 173.14.27-1
+- Update to 173.14.27
+- Fallback to nouveau instead of nv
+- Add post section to change boot option with grubby
+- Add post section Enabled Selinux allow_execstack boolean.
+
 * Sat Mar 27 2010 Nicolas Chauvet <kwizart@fedoraproject.org> - 173.14.25-1
 - Update to 173.14.25
 
