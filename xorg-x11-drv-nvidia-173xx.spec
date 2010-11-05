@@ -8,7 +8,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.28
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -16,7 +16,9 @@ License:       Redistributable, no modification permitted
 URL:           http://www.nvidia.com/
 Source0:       ftp://download.nvidia.com/XFree86/Linux-x86/%{version}/NVIDIA-Linux-x86-%{version}-pkg0.run
 Source1:       ftp://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}-pkg0.run
-Source5:       nvidia-173xx-init
+Source2:         00-nvidia.conf
+Source3:         nvidia-173xx-xorg.conf
+#Source5:       nvidia-173xx-init
 Source6:       blacklist-nouveau.conf
 Source10:      nvidia-173xx-config-display
 Source11:      nvidia-173xx-README.Fedora
@@ -45,14 +47,18 @@ Requires(post):  nvidia-173xx-kmod >= %{version}
 # Needed in all nvidia or fglrx driver packages
 BuildRequires:      prelink
 Requires:           which
-Requires:           livna-config-display >= 0.0.22
-Requires:           %{name}-libs-%{_target_cpu} = %{version}-%{release}
+#Requires:           livna-config-display >= 0.0.22
+%if 0%{?fedora} > 10 || 0%{?rhel} > 5
+Requires:        %{name}-libs%{_isa} = %{?epoch}:%{version}-%{release}
+%else
+Requires:        %{name}-libs-%{_target_cpu} = %{version}-%{release}
+%endif
 
-Requires(post):     livna-config-display >= 0.0.22
-Requires(preun):    livna-config-display >= 0.0.22
-Requires(post):     chkconfig
+#Requires(post):     livna-config-display >= 0.0.22
+#Requires(preun):    livna-config-display >= 0.0.22
+#Requires(post):     chkconfig
 Requires(post):     ldconfig
-Requires(preun):    chkconfig
+#Requires(preun):    chkconfig
 
 Provides:      nvidia-173xx-kmod-common = %{version}
 Conflicts:     xorg-x11-drv-nvidia-newest
@@ -80,7 +86,11 @@ for driver version %{version}.
 %package devel
 Summary:       Development files for %{name}
 Group:         Development/Libraries
-Requires:      %{name}-libs-%{_target_cpu} = %{version}-%{release}
+%if 0%{?fedora} > 10 || 0%{?rhel} > 5
+Requires:        %{name}-libs%{_isa} = %{?epoch}:%{version}-%{release}
+%else
+Requires:        %{name}-libs-%{_target_cpu} = %{version}-%{release}
+%endif
 
 %description devel
 This package provides the development files of the %{name} package,
@@ -201,10 +211,10 @@ ln -s libcuda.so.%{version} $RPM_BUILD_ROOT%{nvidialibdir}/libcuda.so.1
 ln -s libcuda.so.%{version} $RPM_BUILD_ROOT%{nvidialibdir}/libcuda.so
 
 # X configuration script
-install -D -p -m 0755 %{SOURCE10} $RPM_BUILD_ROOT%{_sbindir}/nvidia-173xx-config-display
+#install -D -p -m 0755 %{SOURCE10} $RPM_BUILD_ROOT%{_sbindir}/nvidia-173xx-config-display
 
 # Install initscript
-install -D -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT%{_initrddir}/nvidia-173xx
+#install -D -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT%{_initrddir}/nvidia-173xx
 
 # ld.so.conf.d file
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/
@@ -228,6 +238,13 @@ execstack -c $RPM_BUILD_ROOT%{_sbindir}/nvidia-xconfig
 %endif
 %endif
 
+#Install static driver dependant configuration files
+mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d
+install -pm 0644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d
+sed -i -e 's|@LIBDIR@|%{_libdir}|g' $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
+touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
+install -pm 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/
+
 
 
 %clean
@@ -237,10 +254,10 @@ rm -rf $RPM_BUILD_ROOT
 %post
 if [ "$1" -eq "1" ]; then
   # Enable nvidia driver when installing
-  %{_sbindir}/nvidia-173xx-config-display enable &>/dev/null ||:
+  #%{_sbindir}/nvidia-173xx-config-display enable &>/dev/null ||:
   # Add init script and start it
-  /sbin/chkconfig --add nvidia-173xx ||:
-  /etc/init.d/nvidia-173xx start &>/dev/null ||:
+  #/sbin/chkconfig --add nvidia-173xx ||:
+  #/etc/init.d/nvidia-173xx start &>/dev/null ||:
   if [ -x /sbin/grubby ] ; then
     GRUBBYLASTKERNEL=`/sbin/grubby --default-kernel`
     /sbin/grubby --update-kernel=${GRUBBYLASTKERNEL} --args='nouveau.modeset=0 rdblacklist=nouveau' &>/dev/null
@@ -255,12 +272,27 @@ fi ||:
 
 %post libs -p /sbin/ldconfig
 
+%posttrans
+ [ -f %{_sysconfdir}/X11/xorg.conf ] || \
+   cp -p %{_sysconfdir}/X11/nvidia-173xx-xorg.conf %{_sysconfdir}/X11/xorg.conf || 
+
 %preun
 if [ "$1" -eq "0" ]; then
     # Disable driver on final removal
     test -f %{_sbindir}/nvidia-173xx-config-display && %{_sbindir}/nvidia-173xx-config-display disable &>/dev/null ||:
-    %{_initrddir}/nvidia-173xx stop &> /dev/null ||:
-    /sbin/chkconfig --del nvidia-173xx ||:
+    #%_initrddir}/nvidia-173xx stop &> /dev/null ||:
+    #/sbin/chkconfig --del nvidia-173xx ||:
+    #Clear grub option to disable nouveau for all kernels
+    if [ -x /sbin/grubby ] ; then
+      KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)`
+      for kernel in ${KERNELS} ; do
+      /sbin/grubby --update-kernel=${kernel} \
+        --remove-args='nouveau.modeset=0 rdblacklist=nouveau nomodeset' &>/dev/null
+      done
+    fi
+    #Backup and disable previously used xorg.conf
+    [ -f %{_sysconfdir}/X11/xorg.conf ] && \
+      mv  %{_sysconfdir}/X11/xorg.conf %{_sysconfdir}/X11/xorg.conf.%{name}_uninstalled &>/dev/null
 fi ||:
 
 %postun libs -p /sbin/ldconfig
@@ -268,13 +300,15 @@ fi ||:
 %files
 %defattr(-,root,root,-)
 %doc nvidiapkg/usr/share/doc/*
+%config %{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
 %config(noreplace) %{_sysconfdir}/modprobe.d/blacklist-nouveau.conf
-%{_initrddir}/nvidia-173xx
+%config(noreplace) %{_sysconfdir}/X11/nvidia-173xx-xorg.conf
+#{_initrddir}/nvidia-173xx
 %exclude %{_bindir}/nvidia-settings
 %exclude %{_sbindir}/nvidia-xconfig
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
-%{_sbindir}/nvidia-173xx-config-display
+#{_sbindir}/nvidia-173xx-config-display
 # Xorg libs that do not need to be multilib
 %dir %{_libdir}/xorg/modules/extensions/nvidia
 %{_libdir}/xorg/modules/drivers/nvidia_drv.so
@@ -304,6 +338,13 @@ fi ||:
 
 
 %changelog
+* Fri Nov 05 2010 Nicolas Chauvet <kwizart@gmail.com> - 173.14.28-2
+- Avoid using livna-config-display on fedora 14 and later
+  because of rhbz#623742
+- Use static workaround
+- Explicitely use %%{_isa} dependency from -devel to -libs
+- Improve uninstallation script rfbz#1398
+
 * Thu Oct 07 2010 Nicolas Chauvet <kwizart@gmail.com> - 173.14.28-1
 - Update to 173.14.28
 
