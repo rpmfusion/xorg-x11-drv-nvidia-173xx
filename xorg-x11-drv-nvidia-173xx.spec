@@ -7,8 +7,8 @@
 %endif
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.28
-Release:       3%{?dist}
+Version:       173.14.30
+Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -338,6 +338,9 @@ fi ||:
 
 
 %changelog
+* Sun May 01 2011 Nicolas Chauvet <kwizart@gmail.com> - 173.14.30-1
+- Update to 173.14.30
+
 * Fri Dec 17 2010 Nicolas Chauvet <kwizart@gmail.com> - 173.14.28-3
 - Fix uninstall on kvarriant - rfbz#1559
 
