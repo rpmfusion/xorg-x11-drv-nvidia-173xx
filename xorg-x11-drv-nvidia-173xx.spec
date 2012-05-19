@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.34
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -243,16 +243,18 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 if [ "$1" -eq "1" ]; then
-  # Enable nvidia driver when installing
-  #%{_sbindir}/nvidia-173xx-config-display enable &>/dev/null ||:
-  # Add init script and start it
-  #/sbin/chkconfig --add nvidia-173xx ||:
-  #/etc/init.d/nvidia-173xx start &>/dev/null ||:
+  ISGRUB1=""
+  if [[ -f /boot/grub/grub.conf && ! -f /boot/grub2/grub2.cfg ]] ; then
+      ISGRUB1="--grub"
+  fi
   if [ -x /sbin/grubby ] ; then
     GRUBBYLASTKERNEL=`/sbin/grubby --default-kernel`
-    /sbin/grubby --update-kernel=${GRUBBYLASTKERNEL} --args='nouveau.modeset=0 rdblacklist=nouveau' &>/dev/null
+    /sbin/grubby $ISGRUB1 \
+      --update-kernel=${GRUBBYLASTKERNEL} \
+      --args='nouveau.modeset=0 rd.driver.blacklist=nouveau' \
+       &>/dev/null
   fi
-fi ||:
+fi || :
 
 %post libs -p /sbin/ldconfig
 
@@ -262,18 +264,18 @@ fi ||:
 
 %preun
 if [ "$1" -eq "0" ]; then
-    # Disable driver on final removal
-    test -f %{_sbindir}/nvidia-173xx-config-display && %{_sbindir}/nvidia-173xx-config-display disable &>/dev/null ||:
-    #%_initrddir}/nvidia-173xx stop &> /dev/null ||:
-    #/sbin/chkconfig --del nvidia-173xx ||:
-    #Clear grub option to disable nouveau for all kernels
-    if [ -x /sbin/grubby ] ; then
-      KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
-      for kernel in ${KERNELS} ; do
-      /sbin/grubby --update-kernel=${kernel} \
-        --remove-args='nouveau.modeset=0 rdblacklist=nouveau nomodeset' &>/dev/null
-      done
-    fi
+  ISGRUB1=""
+  if [[ -f /boot/grub/grub.conf && ! -f /boot/grub2/grub2.cfg ]] ; then
+      ISGRUB1="--grub"
+  fi
+  if [ -x /sbin/grubby ] ; then
+    KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
+    for kernel in ${KERNELS} ; do
+      /sbin/grubby $ISGRUB1 \
+        --update-kernel=${kernel} \
+        --remove-args='nouveau.modeset=0 rdblacklist=nouveau rd.driver.blacklist=nouveau nomodeset' &>/dev/null
+    done
+  fi
     #Backup and disable previously used xorg.conf
     [ -f %{_sysconfdir}/X11/xorg.conf ] && \
       mv  %{_sysconfdir}/X11/xorg.conf %{_sysconfdir}/X11/xorg.conf.%{name}_uninstalled &>/dev/null
@@ -322,6 +324,9 @@ fi ||:
 
 
 %changelog
+* Sat May 19 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.34-2
+- add changes for grub2
+
 * Sat May 19 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.34-1
 - Update to 173.14.34
 
