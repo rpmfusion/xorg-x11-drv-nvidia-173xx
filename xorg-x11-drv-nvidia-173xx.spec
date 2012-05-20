@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.34
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -248,11 +248,14 @@ if [ "$1" -eq "1" ]; then
       ISGRUB1="--grub"
   fi
   if [ -x /sbin/grubby ] ; then
-    GRUBBYLASTKERNEL=`/sbin/grubby --default-kernel`
-    /sbin/grubby $ISGRUB1 \
-      --update-kernel=${GRUBBYLASTKERNEL} \
-      --args='nouveau.modeset=0 rd.driver.blacklist=nouveau' \
-       &>/dev/null
+    KERNELS=`/sbin/grubby --default-kernel`
+    [ -z $KERNELS ] && KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
+    for kernel in ${KERNELS} ; do
+      /sbin/grubby $ISGRUB1 \
+        --update-kernel=${kernel} \
+        --args='nouveau.modeset=0 rd.driver.blacklist=nouveau' \
+         &>/dev/null
+    done
   fi
 fi || :
 
@@ -324,6 +327,9 @@ fi ||:
 
 
 %changelog
+* Sun May 20 2012 Nicolas Chauvet <kwizart@gmail.com> - 173.14.34-3
+- Fix %%post when grubby --default-kernel is broken
+
 * Sat May 19 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.34-2
 - add changes for grub2
 
