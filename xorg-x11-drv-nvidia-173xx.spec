@@ -4,8 +4,8 @@
 %global	       __strip /bin/true
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.34
-Release:       3%{?dist}
+Version:       173.14.35
+Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -327,6 +327,9 @@ fi ||:
 
 
 %changelog
+* Tue Jun 05 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.35-1
+- Update to 173.14.35
+
 * Sun May 20 2012 Nicolas Chauvet <kwizart@gmail.com> - 173.14.34-3
 - Fix %%post when grubby --default-kernel is broken
 
