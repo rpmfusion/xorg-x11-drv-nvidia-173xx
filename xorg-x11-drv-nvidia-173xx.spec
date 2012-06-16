@@ -1,13 +1,10 @@
-%define        nvidialibdir      %{_libdir}/nvidia
+%global        nvidialibdir      %{_libdir}/nvidia
 
-# Tweak to have debuginfo - part 1/2
-%if 0%{?fedora} >= 7
-%define __debug_install_post %{_builddir}/%{?buildsubdir}/find-debuginfo.sh %{_builddir}/%{?buildsubdir}\
-%{nil}
-%endif
+%global	       debug_package %{nil}
+%global	       __strip /bin/true
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.30
+Version:       173.14.35
 Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
@@ -16,19 +13,10 @@ License:       Redistributable, no modification permitted
 URL:           http://www.nvidia.com/
 Source0:       ftp://download.nvidia.com/XFree86/Linux-x86/%{version}/NVIDIA-Linux-x86-%{version}-pkg0.run
 Source1:       ftp://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}-pkg0.run
-Source2:         00-nvidia.conf
-Source3:         nvidia-173xx-xorg.conf
-#Source5:       nvidia-173xx-init
+Source2:       00-nvidia.conf
+Source3:       nvidia-173xx-xorg.conf
 Source6:       blacklist-nouveau.conf
-Source10:      nvidia-173xx-config-display
 Source11:      nvidia-173xx-README.Fedora
-# So we don't pull other nvidia variants
-Source91:        filter-requires.sh
-# So we don't mess with mesa provides.
-Source92:        filter-provides.sh
-%define          _use_internal_dependency_generator 0
-%define          __find_requires %{SOURCE91}
-%define          __find_provides %{SOURCE92}
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if 0%{?fedora} > 11 || 0%{?rhel} > 5
@@ -73,6 +61,20 @@ Obsoletes:     nvidia-173xx-kmod < %{version}
 Obsoletes:     nvidia-x11-drv-97xx < %{version}-%{release}
 Provides:      nvidia-x11-drv-97xx = %{version}-%{release}
 
+%{?filter_setup:
+%filter_from_provides /^libnvidia/d;
+%filter_from_provides /^libGLCore\.so/d;
+%filter_from_provides /^libGL\.so/d;
+%filter_from_provides /^libXvMCNVIDIA_dynamic\.so\.1/d;
+%filter_from_provides /^libglx\.so/d;
+%filter_from_requires /^libnvidia/d;
+%filter_from_requires /^libGLCore\.so/d;
+%filter_from_requires /^libGL\.so/d;
+%filter_from_requires /^libXvMCNVIDIA_dynamic\.so\.1/d;
+%filter_from_requires /^libglx\.so/d;
+%filter_setup
+}
+
 %description
 This package provides the legacy NVIDIA display driver of the 173xx serie
 which allows for hardware accelerated rendering with NVIDIA chipsets
@@ -112,12 +114,6 @@ This package provides the shared libraries for %{name}.
 sh %{SOURCE0} --extract-only --target nvidiapkg-x86
 sh %{SOURCE1} --extract-only --target nvidiapkg-x64
 tar -cjf nvidia-kmod-data-%{version}.tar.bz2 nvidiapkg-*/LICENSE nvidiapkg-*/usr/src/
-
-# Tweak to have debuginfo - part 2/2
-%if 0%{?fedora} >= 7
-cp -p %{_prefix}/lib/rpm/find-debuginfo.sh .
-sed -i -e 's|strict=true|strict=false|' find-debuginfo.sh
-%endif
 
 %ifarch %{ix86}
 ln -s nvidiapkg-x86 nvidiapkg
@@ -210,12 +206,6 @@ ln -s libnvidia-wfb.so.%{version} $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensi
 ln -s libcuda.so.%{version} $RPM_BUILD_ROOT%{nvidialibdir}/libcuda.so.1
 ln -s libcuda.so.%{version} $RPM_BUILD_ROOT%{nvidialibdir}/libcuda.so
 
-# X configuration script
-#install -D -p -m 0755 %{SOURCE10} $RPM_BUILD_ROOT%{_sbindir}/nvidia-173xx-config-display
-
-# Install initscript
-#install -D -p -m 0755 %{SOURCE5} $RPM_BUILD_ROOT%{_initrddir}/nvidia-173xx
-
 # ld.so.conf.d file
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/
 echo "%{nvidialibdir}" > $RPM_BUILD_ROOT%{_sysconfdir}/ld.so.conf.d/nvidia-%{_lib}.conf
@@ -228,7 +218,7 @@ install -pm 0644 %{SOURCE6} $RPM_BUILD_ROOT%{_sysconfdir}/modprobe.d/
 find $RPM_BUILD_ROOT/%{nvidialibdir} -type f -name "*.a" -exec chmod 0644 '{}' \;
 
 # Remove execstack needs on F-12 and laters
-%if 0
+%if 1
 find $RPM_BUILD_ROOT%{nvidialibdir} -name '*.so.*' -type f -exec execstack -c {} ';'
 execstack -c $RPM_BUILD_ROOT%{_libdir}/xorg/modules/extensions/nvidia/libglx.so.%{version}
 execstack -c $RPM_BUILD_ROOT%{_libdir}/xorg/modules/drivers/nvidia_drv.so
@@ -253,22 +243,21 @@ rm -rf $RPM_BUILD_ROOT
 
 %post
 if [ "$1" -eq "1" ]; then
-  # Enable nvidia driver when installing
-  #%{_sbindir}/nvidia-173xx-config-display enable &>/dev/null ||:
-  # Add init script and start it
-  #/sbin/chkconfig --add nvidia-173xx ||:
-  #/etc/init.d/nvidia-173xx start &>/dev/null ||:
+  ISGRUB1=""
+  if [[ -f /boot/grub/grub.conf && ! -f /boot/grub2/grub2.cfg ]] ; then
+      ISGRUB1="--grub"
+  fi
   if [ -x /sbin/grubby ] ; then
-    GRUBBYLASTKERNEL=`/sbin/grubby --default-kernel`
-    /sbin/grubby --update-kernel=${GRUBBYLASTKERNEL} --args='nouveau.modeset=0 rdblacklist=nouveau' &>/dev/null
+    KERNELS=`/sbin/grubby --default-kernel`
+    [ -z $KERNELS ] && KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
+    for kernel in ${KERNELS} ; do
+      /sbin/grubby $ISGRUB1 \
+        --update-kernel=${kernel} \
+        --args='nouveau.modeset=0 rd.driver.blacklist=nouveau' \
+         &>/dev/null
+    done
   fi
-fi
-if [ -x /usr/sbin/setsebool ] ; then
-  SELINUXEXECSTACK=`cat /selinux/booleans/allow_execstack 2>/dev/null`
-  if [ "${SELINUXEXECSTACK}" == "0 0" ] ; then
-    /usr/sbin/setsebool -P allow_execstack on &>/dev/null
-  fi
-fi ||:
+fi || :
 
 %post libs -p /sbin/ldconfig
 
@@ -278,18 +267,18 @@ fi ||:
 
 %preun
 if [ "$1" -eq "0" ]; then
-    # Disable driver on final removal
-    test -f %{_sbindir}/nvidia-173xx-config-display && %{_sbindir}/nvidia-173xx-config-display disable &>/dev/null ||:
-    #%_initrddir}/nvidia-173xx stop &> /dev/null ||:
-    #/sbin/chkconfig --del nvidia-173xx ||:
-    #Clear grub option to disable nouveau for all kernels
-    if [ -x /sbin/grubby ] ; then
-      KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
-      for kernel in ${KERNELS} ; do
-      /sbin/grubby --update-kernel=${kernel} \
-        --remove-args='nouveau.modeset=0 rdblacklist=nouveau nomodeset' &>/dev/null
-      done
-    fi
+  ISGRUB1=""
+  if [[ -f /boot/grub/grub.conf && ! -f /boot/grub2/grub2.cfg ]] ; then
+      ISGRUB1="--grub"
+  fi
+  if [ -x /sbin/grubby ] ; then
+    KERNELS=`ls /boot/vmlinuz-*%{?dist}.$(uname -m)*`
+    for kernel in ${KERNELS} ; do
+      /sbin/grubby $ISGRUB1 \
+        --update-kernel=${kernel} \
+        --remove-args='nouveau.modeset=0 rdblacklist=nouveau rd.driver.blacklist=nouveau nomodeset' &>/dev/null
+    done
+  fi
     #Backup and disable previously used xorg.conf
     [ -f %{_sysconfdir}/X11/xorg.conf ] && \
       mv  %{_sysconfdir}/X11/xorg.conf %{_sysconfdir}/X11/xorg.conf.%{name}_uninstalled &>/dev/null
@@ -338,6 +327,22 @@ fi ||:
 
 
 %changelog
+* Tue Jun 05 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.35-1
+- Update to 173.14.35
+
+* Sun May 20 2012 Nicolas Chauvet <kwizart@gmail.com> - 173.14.34-3
+- Fix %%post when grubby --default-kernel is broken
+
+* Sat May 19 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.34-2
+- add changes for grub2
+
+* Sat May 19 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.34-1
+- Update to 173.14.34
+
+* Mon Jul 25 2011 Nicolas Chauvet <kwizart@gmail.com> - 173.14.31-1
+- Update to 173.14.31
+- Rebase with main serie packaging improvements
+
 * Sun May 01 2011 Nicolas Chauvet <kwizart@gmail.com> - 173.14.30-1
 - Update to 173.14.30
 
