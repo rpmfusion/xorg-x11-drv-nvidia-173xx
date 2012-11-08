@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.35
-Release:       1%{?dist}
+Release:       2%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -263,7 +263,7 @@ fi || :
 
 %posttrans
  [ -f %{_sysconfdir}/X11/xorg.conf ] || \
-   cp -p %{_sysconfdir}/X11/nvidia-173xx-xorg.conf %{_sysconfdir}/X11/xorg.conf || 
+   cp -p %{_sysconfdir}/X11/nvidia-173xx-xorg.conf %{_sysconfdir}/X11/xorg.conf || :
 
 %preun
 if [ "$1" -eq "0" ]; then
@@ -327,6 +327,9 @@ fi ||:
 
 
 %changelog
+* Thu Nov 08 2012 Nicolas Chauvet <kwizart@gmail.com> - 173.14.35-2
+- Fix posttrans error code
+
 * Tue Jun 05 2012 leigh scott <leigh123linux@googlemail.com> - 173.14.35-1
 - Update to 173.14.35
 
