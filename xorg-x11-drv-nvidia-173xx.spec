@@ -4,7 +4,7 @@
 %global	       __strip /bin/true
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.36
+Version:       173.14.37
 Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
@@ -327,6 +327,9 @@ fi ||:
 
 
 %changelog
+* Fri Apr 05 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-1
+- Update to 173.14.37
+
 * Fri Nov 16 2012 Leigh Scott <leigh123linux@googlemail.com> - 173.14.36-1
 - Update to 173.14.36
 - Adds support for xserver ABI 13 (xorg-server 1.13)
