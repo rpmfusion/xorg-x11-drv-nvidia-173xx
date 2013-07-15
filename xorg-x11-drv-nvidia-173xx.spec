@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.37
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -67,12 +67,12 @@ Provides:      nvidia-x11-drv-97xx = %{version}-%{release}
 
 %{?filter_setup:
 %filter_from_provides /^libnvidia/d;
-%filter_from_provides /^libGLCore\.so/d;
+%filter_from_provides /^libGLcore\.so/d;
 %filter_from_provides /^libGL\.so/d;
 %filter_from_provides /^libXvMCNVIDIA_dynamic\.so\.1/d;
 %filter_from_provides /^libglx\.so/d;
 %filter_from_requires /^libnvidia/d;
-%filter_from_requires /^libGLCore\.so/d;
+%filter_from_requires /^libGLcore\.so/d;
 %filter_from_requires /^libGL\.so/d;
 %filter_from_requires /^libXvMCNVIDIA_dynamic\.so\.1/d;
 %filter_from_requires /^libglx\.so/d;
@@ -331,6 +331,9 @@ fi ||:
 
 
 %changelog
+* Mon Jul 15 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-3
+- Fix typo with libGLcore filter
+
 * Sat Jul 13 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-2
 - Restore nvidia-settings and nvidia-xconfig - rfbz#2852
 
