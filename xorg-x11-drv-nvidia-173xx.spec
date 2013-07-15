@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.37
-Release:       3%{?dist}
+Release:       4%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -27,11 +27,11 @@ ExclusiveArch: i586 x86_64
 ExclusiveArch: i386 x86_64
 %endif
 Obsoletes:  nvidia-xconfig < 1.0-30
-Provides:  nvidia-xconfig = %{version}-%{release}
+#Provides:  nvidia-xconfig = %{version}-%{release}
 Obsoletes:  nvidia-settings < 1.0-34
-Provides:  nvidia-settings = %{version}-%{release}
+#Provides:  nvidia-settings = %{version}-%{release}
 Obsoletes:  nvidia-settings-desktop < 1.0-34
-Provides:  nvidia-settings-desktop = %{version}-%{release}
+#Provides:  nvidia-settings-desktop = %{version}-%{release}
 
 Requires:        nvidia-173xx-kmod >= %{version}
 Requires(post):  nvidia-173xx-kmod >= %{version}
@@ -331,7 +331,8 @@ fi ||:
 
 
 %changelog
-* Mon Jul 15 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-3
+* Mon Jul 15 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-4
+- Avoid a Virtual Provides for legacy series
 - Fix typo with libGLcore filter
 
 * Sat Jul 13 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-2
