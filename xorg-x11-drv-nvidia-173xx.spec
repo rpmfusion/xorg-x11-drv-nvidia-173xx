@@ -4,8 +4,8 @@
 %global	       __strip /bin/true
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.36
-Release:       1%{?dist}
+Version:       173.14.37
+Release:       4%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -26,8 +26,12 @@ ExclusiveArch: i586 x86_64
 %else
 ExclusiveArch: i386 x86_64
 %endif
-Requires:  nvidia-xconfig
-Requires:  nvidia-settings
+Obsoletes:  nvidia-xconfig < 1.0-30
+#Provides:  nvidia-xconfig = %{version}-%{release}
+Obsoletes:  nvidia-settings < 1.0-34
+#Provides:  nvidia-settings = %{version}-%{release}
+Obsoletes:  nvidia-settings-desktop < 1.0-34
+#Provides:  nvidia-settings-desktop = %{version}-%{release}
 
 Requires:        nvidia-173xx-kmod >= %{version}
 Requires(post):  nvidia-173xx-kmod >= %{version}
@@ -63,12 +67,12 @@ Provides:      nvidia-x11-drv-97xx = %{version}-%{release}
 
 %{?filter_setup:
 %filter_from_provides /^libnvidia/d;
-%filter_from_provides /^libGLCore\.so/d;
+%filter_from_provides /^libGLcore\.so/d;
 %filter_from_provides /^libGL\.so/d;
 %filter_from_provides /^libXvMCNVIDIA_dynamic\.so\.1/d;
 %filter_from_provides /^libglx\.so/d;
 %filter_from_requires /^libnvidia/d;
-%filter_from_requires /^libGLCore\.so/d;
+%filter_from_requires /^libGLcore\.so/d;
 %filter_from_requires /^libGL\.so/d;
 %filter_from_requires /^libXvMCNVIDIA_dynamic\.so\.1/d;
 %filter_from_requires /^libglx\.so/d;
@@ -293,8 +297,8 @@ fi ||:
 %config(noreplace) %{_sysconfdir}/modprobe.d/blacklist-nouveau.conf
 %config(noreplace) %{_sysconfdir}/X11/nvidia-173xx-xorg.conf
 #{_initrddir}/nvidia-173xx
-%exclude %{_bindir}/nvidia-settings
-%exclude %{_sbindir}/nvidia-xconfig
+%{_bindir}/nvidia-settings
+%{_sbindir}/nvidia-xconfig
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
 #{_sbindir}/nvidia-173xx-config-display
@@ -304,8 +308,8 @@ fi ||:
 %{_libdir}/xorg/modules/extensions/nvidia/*.so*
 #/no_multilib
 %{_datadir}/pixmaps/*.png
-%exclude %{_mandir}/man1/nvidia-settings.*
-%exclude %{_mandir}/man1/nvidia-xconfig.*
+%{_mandir}/man1/nvidia-settings.*
+%{_mandir}/man1/nvidia-xconfig.*
 
 %files libs
 %defattr(-,root,root,-)
@@ -327,8 +331,19 @@ fi ||:
 
 
 %changelog
-* Sat Jan 19 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.36-1
+* Mon Jul 15 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-4
+- Avoid a Virtual Provides for legacy series
+- Fix typo with libGLcore filter
+
+* Sat Jul 13 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-2
+- Restore nvidia-settings and nvidia-xconfig - rfbz#2852
+
+* Fri Apr 05 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-1
+- Update to 173.14.37
+
+* Fri Nov 16 2012 Leigh Scott <leigh123linux@googlemail.com> - 173.14.36-1
 - Update to 173.14.36
+- Adds support for xserver ABI 13 (xorg-server 1.13)
 
 * Thu Nov 08 2012 Nicolas Chauvet <kwizart@gmail.com> - 173.14.35-2
 - Fix posttrans error code
