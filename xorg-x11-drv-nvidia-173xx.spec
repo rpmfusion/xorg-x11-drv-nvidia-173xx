@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.37
-Release:       4%{?dist}
+Release:       5%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -17,6 +17,7 @@ Source2:       00-nvidia.conf
 Source3:       nvidia-173xx-xorg.conf
 Source6:       blacklist-nouveau.conf
 Source11:      nvidia-173xx-README.Fedora
+Source99:      nvidia-settings.desktop
 
 BuildRoot:     %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 %if 0%{?fedora} > 11 || 0%{?rhel} > 5
@@ -26,11 +27,11 @@ ExclusiveArch: i586 x86_64
 %else
 ExclusiveArch: i386 x86_64
 %endif
-Obsoletes:  nvidia-xconfig < 1.0-30
+#Obsoletes:  nvidia-xconfig < 1.0-30
 #Provides:  nvidia-xconfig = %{version}-%{release}
-Obsoletes:  nvidia-settings < 1.0-34
+#Obsoletes:  nvidia-settings < 1.0-34
 #Provides:  nvidia-settings = %{version}-%{release}
-Obsoletes:  nvidia-settings-desktop < 1.0-34
+#Obsoletes:  nvidia-settings-desktop < 1.0-34
 #Provides:  nvidia-settings-desktop = %{version}-%{release}
 
 Requires:        nvidia-173xx-kmod >= %{version}
@@ -38,6 +39,7 @@ Requires(post):  nvidia-173xx-kmod >= %{version}
 
 # Needed in all nvidia or fglrx driver packages
 BuildRequires:      prelink
+BuildRequires:      desktop-file-utils
 Requires:           which
 #Requires:           livna-config-display >= 0.0.22
 %if 0%{?fedora} > 10 || 0%{?rhel} > 5
@@ -239,6 +241,12 @@ sed -i -e 's|@LIBDIR@|%{_libdir}|g' $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.
 touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
 install -pm 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/
 
+#Restore desktop file
+mkdir -p $RPM_BUILD_ROOT%{_datadir}/applications
+desktop-file-install --vendor ""                        \
+        --dir $RPM_BUILD_ROOT%{_datadir}/applications   \
+        --mode 644                                      \
+	%{SOURCE99}
 
 
 %clean
@@ -301,6 +309,7 @@ fi ||:
 %{_sbindir}/nvidia-xconfig
 %{_bindir}/nvidia-bug-report.sh
 %{_bindir}/nvidia-smi
+%{_datadir}/applications/*.desktop
 #{_sbindir}/nvidia-173xx-config-display
 # Xorg libs that do not need to be multilib
 %dir %{_libdir}/xorg/modules/extensions/nvidia
@@ -331,6 +340,10 @@ fi ||:
 
 
 %changelog
+* Sun Jul 21 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-5
+- Avoid Obsoletes until rhbz#985944
+- Restore destop file
+
 * Mon Jul 15 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-4
 - Avoid a Virtual Provides for legacy series
 - Fix typo with libGLcore filter
