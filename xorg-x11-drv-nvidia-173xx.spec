@@ -4,8 +4,8 @@
 %global	       __strip /bin/true
 
 Name:          xorg-x11-drv-nvidia-173xx
-Version:       173.14.37
-Release:       5%{?dist}
+Version:       173.14.38
+Release:       1%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -340,6 +340,9 @@ fi ||:
 
 
 %changelog
+* Sat Dec 07 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.38-1
+- Update to 173.14.38
+
 * Sun Jul 21 2013 Nicolas Chauvet <kwizart@gmail.com> - 173.14.37-5
 - Avoid Obsoletes until rhbz#985944
 - Restore destop file
