@@ -344,7 +344,7 @@ fi ||:
 
 %changelog
 * Thu Dec 19 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.39-1
-- Update to 173.14.3
+- Update to 173.14.39
   Adds support for X.org xserver ABI 15 (xorg-server 1.15)
 
 * Sun Dec 01 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.38-2
