@@ -5,7 +5,7 @@
 
 Name:          xorg-x11-drv-nvidia-173xx
 Version:       173.14.38
-Release:       2%{?dist}
+Release:       3%{?dist}
 Summary:       NVIDIA's 173xx serie proprietary display driver for NVIDIA graphic cards
 
 Group:         User Interface/X Hardware Support
@@ -13,7 +13,7 @@ License:       Redistributable, no modification permitted
 URL:           http://www.nvidia.com/
 Source0:       ftp://download.nvidia.com/XFree86/Linux-x86/%{version}/NVIDIA-Linux-x86-%{version}-pkg0.run
 Source1:       ftp://download.nvidia.com/XFree86/Linux-x86_64/%{version}/NVIDIA-Linux-x86_64-%{version}-pkg0.run
-Source2:       00-nvidia.conf
+Source2:       99-nvidia.conf
 Source3:       nvidia-173xx-xorg.conf
 Source5:       00-avoid-glamor.conf
 Source6:       blacklist-nouveau.conf
@@ -239,8 +239,8 @@ execstack -c $RPM_BUILD_ROOT%{_sbindir}/nvidia-xconfig
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d
 install -pm 0644 %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d
 install -pm 0644 %{SOURCE5} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d
-sed -i -e 's|@LIBDIR@|%{_libdir}|g' $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
-touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
+sed -i -e 's|@LIBDIR@|%{_libdir}|g' $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/99-nvidia.conf
+touch -r %{SOURCE2} $RPM_BUILD_ROOT%{_sysconfdir}/X11/xorg.conf.d/99-nvidia.conf
 install -pm 0644 %{SOURCE3} $RPM_BUILD_ROOT%{_sysconfdir}/X11/
 
 #Restore desktop file
@@ -303,7 +303,7 @@ fi ||:
 %files
 %defattr(-,root,root,-)
 %doc nvidiapkg/usr/share/doc/*
-%config %{_sysconfdir}/X11/xorg.conf.d/00-nvidia.conf
+%config %{_sysconfdir}/X11/xorg.conf.d/99-nvidia.conf
 %config %{_sysconfdir}/X11/xorg.conf.d/00-avoid-glamor.conf
 %config(noreplace) %{_sysconfdir}/modprobe.d/blacklist-nouveau.conf
 %config(noreplace) %{_sysconfdir}/X11/nvidia-173xx-xorg.conf
@@ -343,6 +343,9 @@ fi ||:
 
 
 %changelog
+* Fri Dec 27 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.38-3
+- fix module path issue with alien msttcore-fonts package
+
 * Sun Dec 01 2013 Leigh Scott <leigh123linux@googlemail.com> - 173.14.38-2
 - disable glamor module
 
